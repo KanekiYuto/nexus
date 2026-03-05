@@ -66,6 +66,4 @@ RUN chown -R www-data:www-data /srv && \
 
 RUN ls
 
-RUN ll
-
 CMD ["/srv/setup.sh"]
