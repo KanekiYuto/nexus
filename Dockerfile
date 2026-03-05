@@ -44,10 +44,19 @@ RUN docker-php-source delete
 # 设置安全目录
 RUN git config --global --add safe.directory /srv
 
-# 先复制代码再设置权限（确保目录存在）
+# 先复制 composer 文件，利用 Docker 层缓存
+COPY composer.json composer.lock /srv/
+
+# 安装 PHP 依赖（生产环境）
+RUN composer install --no-dev --optimize-autoloader --no-scripts --no-interaction
+
+# 复制完整项目代码
 COPY . /srv
 COPY ./docker/conf/php/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY ./docker/conf/php/php.production.ini /usr/local/etc/php/php.ini
+
+# 下载 RoadRunner 二进制到 /srv/rr
+RUN /srv/vendor/bin/rr get-binary
 
 # 设置权限
 RUN chown -R www-data:www-data /srv && \
