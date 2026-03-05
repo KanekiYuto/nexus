@@ -9,3 +9,5 @@ echo "===== 初始化 Laravel 应用 ====="
 
 echo "===== 启动 Supervisor ====="
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+
+cat /srv/storage/logs/laravel.log
