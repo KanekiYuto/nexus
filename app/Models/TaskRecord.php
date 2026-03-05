@@ -158,44 +158,43 @@ class TaskRecord extends Model
     }
 
     /**
-     * submit 后统一回写任务状态。
-     * submit 成功仅表示进入上游队列，非最终完成。
+     * 提交成功，标记任务进入上游队列。
+     * 此时任务尚未完成，等待服务商 webhook 回调后再收敛最终状态。
      *
-     * @param string $provider 实际提交使用的服务商
-     * @param bool $success 提交是否成功
-     * @param array $payload 提交响应
-     * @param int $startedAt 开始时间（秒级时间戳）
+     * @param string $provider   实际提交使用的服务商
      * @param string $providerId 服务商任务 ID
      * @return void
      */
-    public function finalizeAfterSubmit(
-        string $provider,
-        bool   $success,
-        array  $payload,
-        int    $startedAt,
-        string $providerId
-    ): void
+    public function markSubmitted(string $provider, string $providerId): void
+    {
+        $this->update([
+            'status'                     => GenerateTaskStatusConst::IN_QUEUE,
+            'final_provider'             => $provider,
+            'requested_provider_task_id' => $providerId,
+            'updated_at'                 => time(),
+        ]);
+    }
+
+    /**
+     * 提交失败，标记任务为失败并记录错误响应。
+     *
+     * @param string $provider   实际提交使用的服务商
+     * @param array  $payload    服务商错误响应（用于落库和调试）
+     * @param int    $startedAt  开始时间（秒级时间戳，started_at 为空时作为兜底）
+     * @return void
+     */
+    public function markSubmitFailed(string $provider, array $payload, int $startedAt): void
     {
         $now = time();
 
-        $updateData = [
-            'status' => $success ? GenerateTaskStatusConst::IN_QUEUE : GenerateTaskStatusConst::FAILED,
-            'final_provider' => $provider,
-            'final_error_payload' => $success ? null : $payload,
-            'updated_at' => $now,
-            'requested_provider_task_id' => $providerId,
-        ];
-
-        if (!$success) {
-            $updateData['completed_at'] = $now;
-            $updateData['duration_ms'] = max(0, ($now - (int)$this->started_at) * 1000);
-            // started_at 为空时，退化为使用入参 startedAt 计算，保持兼容
-            if ((int)$this->started_at <= 0) {
-                $updateData['duration_ms'] = max(0, ($now - $startedAt) * 1000);
-            }
-        }
-
-        $this->update($updateData);
+        $this->update([
+            'status'              => GenerateTaskStatusConst::FAILED,
+            'final_provider'      => $provider,
+            'final_error_payload' => $payload,
+            'completed_at'        => $now,
+            'duration_ms'         => max(0, ($now - ((int)$this->started_at > 0 ? (int)$this->started_at : $startedAt)) * 1000),
+            'updated_at'          => $now,
+        ]);
     }
 
     /**

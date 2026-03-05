@@ -6,6 +6,7 @@ use App\Jobs\Concerns\SubmitsToProvider;
 use App\Models\TaskRecord;
 use App\Support\WebhookNotifier;
 use Closure;
+use Extensions\API\Exceptions\ProviderSubmitException;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Queue\Queueable;
@@ -64,7 +65,7 @@ class GenerateSubmit implements ShouldQueue
         ];
 
         try {
-            $context = app(Pipeline::class)->send($context)->through([
+            app(Pipeline::class)->send($context)->through([
                 [$this, 'pipeLoadTaskRecord'],
                 [$this, 'pipeMarkTaskInProgress'],
                 [$this, 'pipeSubmitPrimary'],
@@ -100,9 +101,10 @@ class GenerateSubmit implements ShouldQueue
     /**
      * 管道阶段：调用主服务商提交。
      *
-     * - 提交成功 / 失败且无回退 → 收敛状态，写入回调上下文，继续管道
+     * - 提交成功 → 收敛状态，写入回调上下文，继续管道
      * - 提交失败且有回退 → 记录主服务商错误，派发 GenerateSubmitFallback，终止管道
-     *   （后续回调将由 GenerateSubmitFallback 负责，此 Job 不再发送 webhook）
+     *   （后续回调由 GenerateSubmitFallback 负责，此 Job 不再发送 webhook）
+     * - 提交失败且无回退 → 收敛失败状态，写入回调上下文，继续管道
      */
     public function pipeSubmitPrimary(array $context, Closure $next): array
     {
@@ -110,29 +112,26 @@ class GenerateSubmit implements ShouldQueue
         $taskRecord = $context['taskRecord'];
         $startedAt  = (int)$context['startedAt'];
 
-        [$success, $payload] = $this->submitToProvider($this->provider, $this->taskRecordId);
+        try {
+            $payload = $this->submitToProvider($this->provider, $this->taskRecordId);
+            $taskRecord->markSubmitted($this->provider, $this->extractProviderId($payload));
+        } catch (ProviderSubmitException $e) {
+            if ($this->canUseFallback()) {
+                $taskRecord->markFallbackTriggered($e->payload);
+                GenerateSubmitFallback::dispatch(
+                    $this->taskRecordId,
+                    $this->customId,
+                    $this->model,
+                    (string)$this->fallbackProvider,
+                    $this->parameters,
+                    $this->webhookUrl,
+                );
+                // 终止管道，不发送本次 webhook
+                return $context;
+            }
 
-        if (!$success && $this->canUseFallback()) {
-            $taskRecord->markFallbackTriggered($payload);
-            GenerateSubmitFallback::dispatch(
-                $this->taskRecordId,
-                $this->customId,
-                $this->model,
-                (string)$this->fallbackProvider,
-                $this->parameters,
-                $this->webhookUrl,
-            );
-            // 终止管道，不发送本次 webhook
-            return $context;
+            $taskRecord->markSubmitFailed($this->provider, $e->payload, $startedAt);
         }
-
-        $taskRecord->finalizeAfterSubmit(
-            provider:   $this->provider,
-            success:    $success,
-            payload:    $payload,
-            startedAt:  $startedAt,
-            providerId: $this->extractProviderId($payload),
-        );
 
         $context['callback'] = [
             'taskId' => $taskRecord->id,

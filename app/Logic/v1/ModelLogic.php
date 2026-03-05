@@ -2,6 +2,7 @@
 
 namespace App\Logic\v1;
 
+use App\AIModels\ModelDispatch;
 use App\Constants\GenerateTaskStatusConst;
 use App\Constants\StatusCode;
 use App\Jobs\GenerateSubmit;
@@ -11,6 +12,7 @@ use App\Support\WebhookNotifier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 /**
  * 模型生成业务逻辑。
@@ -28,9 +30,13 @@ class ModelLogic
      * @param array $params 经过控制器校验后的参数
      *
      * @return JsonResponse 统一 JSON 响应
+     * @throws ValidationException
      */
     public static function generate(array $params): JsonResponse
     {
+        // 校验模型专属参数，非法时抛 ValidationException，不创建任务记录
+        ModelDispatch::validate($params['model'], $params['parameters']);
+
         // 延迟秒数兜底为 0，避免负数或空值
         $delaySeconds = max(0, (int)($params['delay_generation'] ?? 0));
 

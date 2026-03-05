@@ -5,6 +5,8 @@ namespace App\Jobs;
 use App\Jobs\Concerns\SubmitsToProvider;
 use App\Models\TaskRecord;
 use App\Support\WebhookNotifier;
+use Closure;
+use Extensions\API\Exceptions\ProviderSubmitException;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Queue\Queueable;
@@ -86,22 +88,22 @@ class GenerateSubmitFallback implements ShouldQueue
 
     /**
      * 管道阶段：调用回退服务商提交并产出回调上下文。
+     *
+     * - 提交成功 → 收敛成功状态，写入回调上下文，继续管道
+     * - 提交失败 → 收敛失败状态，写入回调上下文，继续管道
      */
-    public function pipeSubmitFallback(array $context, \Closure $next): array
+    public function pipeSubmitFallback(array $context, Closure $next): array
     {
         /** @var TaskRecord $taskRecord */
         $taskRecord = $context['taskRecord'];
         $startedAt  = (int)$context['startedAt'];
 
-        [$success, $payload] = $this->submitToProvider($this->provider, $this->taskRecordId);
-
-        $taskRecord->finalizeAfterSubmit(
-            provider:   $this->provider,
-            success:    $success,
-            payload:    $payload,
-            startedAt:  $startedAt,
-            providerId: $this->extractProviderId($payload),
-        );
+        try {
+            $payload = $this->submitToProvider($this->provider, $this->taskRecordId);
+            $taskRecord->markSubmitted($this->provider, $this->extractProviderId($payload));
+        } catch (ProviderSubmitException $e) {
+            $taskRecord->markSubmitFailed($this->provider, $e->payload, $startedAt);
+        }
 
         $context['callback'] = [
             'taskId' => $taskRecord->id,

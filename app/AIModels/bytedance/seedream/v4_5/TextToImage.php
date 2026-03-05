@@ -2,8 +2,8 @@
 
 namespace App\AIModels\bytedance\seedream\v4_5;
 
+use App\AIModels\Contracts\ModelHandlerContract;
 use App\Constants\ProviderConst;
-use App\Constants\StatusCode;
 use Extensions\API\Fal;
 use Extensions\API\WaveSpeed;
 use Illuminate\Support\Facades\Validator;
@@ -15,14 +15,14 @@ use Illuminate\Support\Facades\Validator;
  * - 仅做模型层参数校验与服务商请求映射
  * - 不处理任务状态流转与回调发送（由 Job/Logic 层处理）
  */
-class TextToImage
+class TextToImage implements ModelHandlerContract
 {
     /** 业务层统一模型标识（用于分发路由）。 */
     public const string MODEL_NAME = 'bytedance/seedream/v4.5/text-to-image';
 
     /** FAL 服务商侧模型标识。 */
     private const string FAL_MODEL = 'bytedance/seedream/v4.5/text-to-image';
-    
+
     /** WaveSpeed 服务商侧模型标识。 */
     private const string WAVESPEED_MODEL = 'bytedance/seedream-v4.5';
 
@@ -30,7 +30,7 @@ class TextToImage
      * 提交文生图任务，并按服务商转发请求。
      *
      * 约定：
-     * - 入参校验失败时直接返回统一错误结构，不调用上游
+     * - 入参须由上游在创建任务前通过 validateParams() 校验，此处不再重复验证
      * - provider 为 fal 时转发到 FAL；其余值默认走 WaveSpeed
      *
      * @param string $provider 服务商标识（fal / wavespeed）
@@ -41,11 +41,6 @@ class TextToImage
      */
     public static function submit(string $provider, array $params, string $taskId): array
     {
-        $validationResult = self::validateParams($params);
-        if ($validationResult !== null) {
-            return $validationResult;
-        }
-
         $normalizedParams = [
             'prompt' => (string)$params['prompt'],
             'size' => (string)$params['size'],
@@ -58,29 +53,18 @@ class TextToImage
     }
 
     /**
-     * 校验并规范化请求参数。
+     * 校验模型专属入参。
      *
      * size 格式约定为 "宽*高"，例如 "2048*2048"。
      *
-     * @param array $params 输入参数
-     * @return array|null 校验失败返回错误响应；成功返回 null
+     * @param array $params 业务参数
      */
-    private static function validateParams(array $params): ?array
+    public static function validateParams(array $params): void
     {
-        $validator = Validator::make($params, [
+        Validator::validate($params, [
             'prompt' => ['required', 'string'],
-            'size' => ['required', 'string', 'regex:/^\d+\*\d+$/'],
+            'size'   => ['required', 'string', 'regex:/^\d+\*\d+$/'],
         ]);
-
-        if (!$validator->passes()) {
-            return [
-                'success' => false,
-                'code' => StatusCode::VALIDATION_ERROR,
-                'msg' => collect($validator->errors()->toArray())->implode(','),
-            ];
-        }
-
-        return null;
     }
 
     /**

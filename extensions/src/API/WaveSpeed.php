@@ -2,6 +2,7 @@
 
 namespace Extensions\API;
 
+use Extensions\API\Exceptions\ProviderSubmitException;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -19,14 +20,12 @@ abstract class WaveSpeed
     /**
      * 向 WaveSpeed 提交图像生成任务。
      *
-     * - 成功时返回上游回执（receipt）。
-     * - 失败时返回统一的业务错误响应结构。
-     *
      * @param string $model 上游模型路径，例如 "bytedance/seedream-v4.5"
      * @param array<string, mixed> $params 提交给上游服务的请求参数
      * @param string $taskId 任务 ID
      *
-     * @return array 响应
+     * @return array 成功响应（provider_id / response）
+     * @throws ProviderSubmitException 连接失败或服务商返回错误时抛出
      */
     public static function submit(string $model, array $params, string $taskId): array
     {
@@ -43,17 +42,24 @@ abstract class WaveSpeed
                 ->json();
 
             if (!is_array($response)) {
-                return SubmitResponse::invalidPayload('WaveSpeed');
+                throw new ProviderSubmitException('WaveSpeed returned an invalid response payload');
             }
 
             if (!isset($response['code']) || (int)$response['code'] !== 200) {
-                return SubmitResponse::fail((string)($response['message'] ?? 'WaveSpeed submit failed'), $response);
+                throw new ProviderSubmitException(
+                    (string)($response['message'] ?? 'WaveSpeed submit failed'),
+                    $response,
+                );
             }
 
             return SubmitResponse::success((string)($response['data']['id'] ?? ''), $response);
         } catch (ConnectionException $e) {
             Log::error($e->getMessage());
-            return SubmitResponse::connectionFailed('WaveSpeed', $e);
+            throw new ProviderSubmitException(
+                'Unable to connect to WaveSpeed service',
+                ['message' => $e->getMessage(), 'code' => $e->getCode()],
+                $e,
+            );
         }
     }
 

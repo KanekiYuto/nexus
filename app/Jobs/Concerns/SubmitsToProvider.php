@@ -7,6 +7,7 @@ use App\Constants\GenerateTaskStatusConst;
 use App\Models\TaskRecord;
 use App\Support\WebhookNotifier;
 use Closure;
+use Extensions\API\Exceptions\ProviderSubmitException;
 
 /**
  * 服务商提交共享 Trait。
@@ -79,25 +80,22 @@ trait SubmitsToProvider
     }
 
     /**
-     * 统一封装服务商 submit 调用。
+     * 调用服务商 submit，成功返回响应数组，失败抛出 ProviderSubmitException。
      *
      * @param string $provider 服务商标识
      * @param string $taskId   任务 ID（传给服务商用于回调路由）
-     *
-     * @return array{0: bool, 1: array} [success, payload]
+     * @return array 成功响应（provider_id / response）
+     * @throws ProviderSubmitException
      */
-    private function submitToProvider(string $provider, string $taskId): array
+    protected function submitToProvider(string $provider, string $taskId): array
     {
-        $payload = ModelDispatch::submit($this->model, $provider, $this->parameters, $taskId);
-        $success = (bool)($payload['success'] ?? false);
-
-        return [$success, $payload];
+        return ModelDispatch::submit($this->model, $provider, $this->parameters, $taskId);
     }
 
     /**
      * 从 submit 响应中提取服务商任务 ID。
      */
-    private function extractProviderId(array $payload): string
+    protected function extractProviderId(array $payload): string
     {
         return (string)($payload['provider_id'] ?? '');
     }
