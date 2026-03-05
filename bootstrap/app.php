@@ -32,12 +32,18 @@ return Application::configure(basePath: dirname(__DIR__))->withRouting(
 
     $middleware->trustProxies(
         at: '*',
-        headers: RequestAlias::HEADER_X_FORWARDED_FOR |
-        RequestAlias::HEADER_X_FORWARDED_HOST |
-        RequestAlias::HEADER_X_FORWARDED_PORT |
-        RequestAlias::HEADER_X_FORWARDED_PROTO |
-        RequestAlias::HEADER_X_FORWARDED_AWS_ELB
+        headers: RequestAlias::HEADER_X_FORWARDED_ALL
     );
+
+    // Railway 经由 Fastly CDN 转发，真实客户端 IP 由 Fastly 写入 fastly-client-ip
+    // X-Real-IP 是 Fastly 边缘节点 IP，不可作为用户 IP 使用
+    $middleware->prepend(function ($request, $next) {
+        if ($clientIp = $request->header('fastly-client-ip')) {
+            $request->server->set('REMOTE_ADDR', $clientIp);
+        }
+
+        return $next($request);
+    });
 
     $middleware->validateCsrfTokens(except: [
         'telescope/*',
