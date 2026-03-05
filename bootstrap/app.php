@@ -31,10 +31,12 @@ return Application::configure(basePath: dirname(__DIR__))->withRouting(
         'auth' => Authenticate::class,
     ]);
 
+    // 不包含 HEADER_X_FORWARDED_FOR：真实客户端 IP 已由 SetClientIpFromFastly 写入
+    // REMOTE_ADDR，Symfony 无需再从 X-Forwarded-For 推断，避免覆盖导致结果错误。
+    // 保留 HOST / PORT / PROTO 用于正确解析请求协议（HTTPS）和域名。
     $middleware->trustProxies(
         at: '*',
-        headers: RequestAlias::HEADER_X_FORWARDED_FOR |
-            RequestAlias::HEADER_X_FORWARDED_HOST |
+        headers: RequestAlias::HEADER_X_FORWARDED_HOST |
             RequestAlias::HEADER_X_FORWARDED_PORT |
             RequestAlias::HEADER_X_FORWARDED_PROTO
     );
