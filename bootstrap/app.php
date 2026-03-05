@@ -2,6 +2,7 @@
 
 use App\Constants\StatusCode;
 use App\Http\Middleware\Authenticate;
+use App\Http\Middleware\SetClientIpFromFastly;
 use App\Support\ApiResponse;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Foundation\Application;
@@ -37,6 +38,10 @@ return Application::configure(basePath: dirname(__DIR__))->withRouting(
             RequestAlias::HEADER_X_FORWARDED_PORT |
             RequestAlias::HEADER_X_FORWARDED_PROTO
     );
+
+    // Fastly 在边缘处将真实客户端 IP 写入 fastly-client-ip，不可伪造
+    // 必须在 trustProxies 之前执行，让后续中间件获得正确的 REMOTE_ADDR
+    $middleware->prepend(SetClientIpFromFastly::class);
 
     $middleware->validateCsrfTokens(except: [
         'telescope/*',
