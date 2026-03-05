@@ -11,6 +11,7 @@ return new class extends Migration {
             $table->comment('应用信息');
             $table->ulid('id')->primary()->comment('ID');
             $table->string('name')->comment('应用名称');
+            $table->tinyInteger('status')->default(1)->comment('1=启用 0=禁用')->after('name');
             $table->unsignedBigInteger('created_at')->comment('创建时间');
             $table->unsignedBigInteger('updated_at')->comment('修改时间');
         });

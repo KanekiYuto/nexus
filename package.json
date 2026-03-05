@@ -1,0 +1,11 @@
+{
+    "name": "nexus",
+    "private": true,
+    "scripts": {
+        "build:admin": "tailwindcss -i ./resources/css/admin.css -o ./public/css/admin.css --minify",
+        "watch:admin": "tailwindcss -i ./resources/css/admin.css -o ./public/css/admin.css --watch"
+    },
+    "devDependencies": {
+        "tailwindcss": "^3.4.17"
+    }
+}
