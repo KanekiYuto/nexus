@@ -63,3 +63,7 @@ RUN chown -R www-data:www-data /srv && \
     chmod -R 775 /srv && \
     chmod +x /srv/rr && \
     chmod +x /srv/setup.sh
+
+RUN ls
+
+RUN ll
