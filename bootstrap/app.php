@@ -4,16 +4,16 @@ use App\Constants\StatusCode;
 use App\Http\Middleware\Authenticate;
 use App\Http\Middleware\SetClientIpFromFastly;
 use App\Support\ApiResponse;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpFoundation\Request as RequestAlias;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\HttpFoundation\Request as RequestAlias;
 
 return Application::configure(basePath: dirname(__DIR__))->withRouting(
     using: function () {
@@ -37,8 +37,8 @@ return Application::configure(basePath: dirname(__DIR__))->withRouting(
     $middleware->trustProxies(
         at: '*',
         headers: RequestAlias::HEADER_X_FORWARDED_HOST |
-            RequestAlias::HEADER_X_FORWARDED_PORT |
-            RequestAlias::HEADER_X_FORWARDED_PROTO
+        RequestAlias::HEADER_X_FORWARDED_PORT |
+        RequestAlias::HEADER_X_FORWARDED_PROTO
     );
 
     // Fastly 在边缘处将真实客户端 IP 写入 fastly-client-ip，不可伪造
@@ -63,10 +63,9 @@ return Application::configure(basePath: dirname(__DIR__))->withRouting(
     $exceptions->render(function (NotFoundHttpException $e) {
         Log::error($e->getMessage());
 
-        return ApiResponse::basic(
-            'Not Found',
-            StatusCode::NOT_FOUND
-        );
+        return ApiResponse::basic('Not Found', StatusCode::NOT_FOUND, [
+            'ip' => request()->ip(),
+        ]);
     });
 
     // 验证错误
@@ -75,7 +74,7 @@ return Application::configure(basePath: dirname(__DIR__))->withRouting(
             $e->getMessage(),
             StatusCode::VALIDATION_ERROR,
             [
-                'receipt' => (object) [
+                'receipt' => (object)[
                     'errors' => $e->errors(),
                 ],
             ]
