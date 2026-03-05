@@ -242,10 +242,10 @@ class TaskRecord extends Model
     }
 
     /**
-     * 任务关联的存储资源记录。
+     * 任务关联的生成结果记录。
      */
-    public function storages(): HasMany
+    public function results(): HasMany
     {
-        return $this->hasMany(TaskStorage::class, 'task_record_id', 'id');
+        return $this->hasMany(TaskResult::class, 'task_record_id', 'id');
     }
 }

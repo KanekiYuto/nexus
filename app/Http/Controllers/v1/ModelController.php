@@ -7,8 +7,9 @@ use App\Logic\v1\ModelLogic;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Request;
+use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 /**
  * 模型生成接口控制器。
@@ -21,28 +22,28 @@ class ModelController
      *
      * @param Request $request 请求参数
      * @return JsonResponse 统一 JSON 响应
+     *
+     * @throws ValidationException
      */
     public function generate(Request $request): JsonResponse
     {
-        // 参数校验：限定模型、服务商和回调参数格式
-        $requestParams = $request::validate([
+        // app_id 由 AuthenticateAppToken 中间件从 token 注入，无需客户端传入
+        $requestParams = $request->validate([
             'app_id' => ['required', 'ulid', 'exists:app,id'],
             'provider' => ['required', Rule::in([
                 ProviderConst::WAVE_SPEED,
-                ProviderConst::FAL
+                ProviderConst::FAL,
             ])],
-            'model' => [
-                'required', Rule::in(
-                    array_keys(Config::get('model', []))
-                )
-            ],
+            'model' => ['required', Rule::in(
+                array_keys(Config::get('model', []))
+            )],
             'webhook_url' => ['required', 'url'],
             'custom_id' => ['required', 'string', 'max:128'],
             'parameters' => ['required', 'array'],
             'metadata' => ['nullable', 'array'],
             'fallback_provider' => ['nullable', Rule::in([
                 ProviderConst::WAVE_SPEED,
-                ProviderConst::FAL
+                ProviderConst::FAL,
             ])],
             'delay_generation' => ['nullable', 'numeric', 'min:0', 'max:120'],
         ]);
@@ -94,7 +95,7 @@ class ModelController
             )->map(fn($item) => $item['url'])->toArray());;
         } else {
             // WaveSpeed 回调格式：code + status + outputs
-            $requestParams = $request::validate([
+            $requestParams = $request->validate([
                 'code' => ['required', 'numeric'],
                 'status' => ['required', 'string'],
                 'outputs' => ['required', 'array'],

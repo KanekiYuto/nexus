@@ -36,6 +36,9 @@ class AuthenticateAppToken
             return ApiResponse::basic('Unauthorized', StatusCode::UNAUTHORIZED);
         }
 
+        // 将 app_id 注入请求 input，供下游控制器像普通参数一样读取
+        $request->merge(['app_id' => $token->app_id]);
+
         return $next($request);
     }
 }

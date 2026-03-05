@@ -6,9 +6,9 @@ use App\AIModels\ModelDispatch;
 use App\Constants\GenerateTaskStatusConst;
 use App\Constants\StatusCode;
 use App\Jobs\GenerateSubmit;
+use App\Jobs\ProcessOutputs;
 use App\Models\TaskRecord;
 use App\Support\ApiResponse;
-use App\Support\WebhookNotifier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -122,11 +122,11 @@ class ModelLogic
         // 回写任务最终状态与输出
         $taskRecord->markCompleted($outputs, $completedAt, $durationMs);
 
-        // 通知业务侧任务完成
-        WebhookNotifier::completed(
-            $taskRecord->webhook_url,
-            $taskId,
+        // 转存资源并推送 webhook（异步执行，不阻塞服务商回调响应）
+        ProcessOutputs::dispatch(
+            $taskRecord->id,
             $taskRecord->custom_id,
+            $taskRecord->webhook_url,
             $completedAt,
             $durationMs,
             $outputs,

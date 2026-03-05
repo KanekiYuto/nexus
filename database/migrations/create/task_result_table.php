@@ -7,12 +7,11 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
-        Schema::create('task_storage', function (Blueprint $table) {
-            $table->comment('任务存储表');
+        Schema::create('task_result', function (Blueprint $table) {
+            $table->comment('任务结果表');
             $table->ulid('id')->primary()->comment('ID');
             $table->ulid('task_record_id')->index()->comment('任务ID');
             $table->ulid('storage_id')->index()->comment('存储资源ID');
-            $table->string('type')->index()->comment('资源类型(parameter/result)');
             $table->unsignedInteger('order_index')->comment('排序序号');
             $table->unsignedBigInteger('created_at')->comment('创建时间');
 
@@ -34,6 +33,6 @@ return new class extends Migration {
 
     public function down(): void
     {
-        Schema::dropIfExists('task_storage');
+        Schema::dropIfExists('task_result');
     }
 };
