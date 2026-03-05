@@ -58,12 +58,17 @@ COPY . /srv
 COPY ./docker/conf/php/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY ./docker/conf/php/php.production.ini /usr/local/etc/php/php.ini
 
+# 创建 Laravel 运行时必须存在的目录（.dockerignore 排除了这些目录的内容）
+RUN mkdir -p /srv/storage/logs \
+             /srv/storage/framework/cache/data \
+             /srv/storage/framework/sessions \
+             /srv/storage/framework/views \
+             /srv/bootstrap/cache
+
 # 设置权限
 RUN chown -R www-data:www-data /srv && \
     chmod -R 775 /srv && \
     chmod +x /srv/rr && \
     chmod +x /srv/setup.sh
-
-RUN ls
 
 CMD ["/srv/setup.sh"]
