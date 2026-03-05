@@ -1,0 +1,90 @@
+services:
+
+    php_service:
+        container_name: '${DOCKER_APP_ID}-php-service'
+        build:
+            context: .
+            dockerfile: docker/Dockerfile/php/Dockerfile
+        ports:
+            - '${DOCKER_EXPORT_PHP_OCTANE_PORT}:${OCTANE_PORT}'
+        environment:
+            OCTANE_PORT: "${OCTANE_PORT}"
+            OCTANE_RPC_PORT: "${OCTANE_RPC_PORT}"
+        volumes:
+            - './:/srv'
+            - './docker/conf/php/supervisord.conf:/etc/supervisor/conf.d/supervisord.conf'
+            - './docker/logs/supervisor:/var/log/supervisor'
+            - './docker/conf/php/php.production.ini:/usr/local/etc/php/php.ini'
+        command: [ "/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf" ]
+        healthcheck:
+            test: [ "CMD-SHELL", "netstat -tuln | grep :${OCTANE_PORT} || exit 1" ]
+            interval: 30s
+            timeout: 3s
+            start_period: 3s
+            retries: 3
+        depends_on:
+            # redis_service / postgresql_service 均为独立服务可以单独启动
+            redis_service:
+                condition: service_healthy
+            postgresql_service:
+                condition: service_healthy
+        restart: unless-stopped
+        networks:
+            nexus-app-network:
+                ipv4_address: "${DOCKER_APP_IP}.10"
+
+    redis_service:
+        container_name: '${DOCKER_APP_ID}-redis-service'
+        image: 'redis:7.0.8'
+        ports:
+            - '${DOCKER_EXPORT_REDIS_PORT}:${REDIS_PORT}'
+        environment:
+            REDIS_PASSWORD: '${REDIS_PASSWORD}'
+        command: [ "redis-server", "--requirepass", "${REDIS_PASSWORD}" ]
+        volumes:
+            - 'redis-service:/data'
+        healthcheck:
+            test: [ "CMD", "redis-cli", "ping" ]
+            retries: 3
+            timeout: 5s
+        restart: unless-stopped
+        networks:
+            nexus-app-network:
+                ipv4_address: "${DOCKER_APP_IP}.11"
+
+    postgresql_service:
+        image: bitnami/postgresql:17
+        container_name: '${DOCKER_APP_ID}-postgresql-service'
+        environment:
+            POSTGRES_DB: '${DB_DATABASE}'
+            POSTGRES_USER: '${DB_USERNAME}'
+            POSTGRES_PASSWORD: '${DB_PASSWORD}'
+            POSTGRESQL_POSTGRES_PASSWORD: '${DB_PASSWORD}'
+        ports:
+            - "${DOCKER_EXPORT_POSTGRES_PORT}:${DB_PORT}"
+        volumes:
+            - postgresql-service:/bitnami/postgresql
+        healthcheck:
+            test: [ "CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE}" ]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+            start_period: 30s
+        restart: unless-stopped
+        networks:
+            nexus-app-network:
+                ipv4_address: "${DOCKER_APP_IP}.12"
+
+networks:
+    nexus-app-network:
+        driver: bridge
+        ipam:
+            config:
+                -   subnet: "${DOCKER_APP_IP}.0/16"
+                    gateway: "${DOCKER_APP_IP}.1"
+
+volumes:
+    redis-service:
+        driver: local
+    postgresql-service:
+        driver: local
