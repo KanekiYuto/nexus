@@ -47,16 +47,16 @@ RUN git config --global --add safe.directory /srv
 # 先复制 composer 文件，利用 Docker 层缓存
 COPY composer.json composer.lock /srv/
 
-# 安装 PHP 依赖（生产环境）
+# 安装 PHP 依赖（生产环境），--no-scripts 避免触发需要 .env 的脚本
 RUN composer install --no-dev --optimize-autoloader --no-scripts --no-interaction
 
-# 复制完整项目代码
+# 下载 RoadRunner 二进制到 /srv/rr（在覆盖 vendor 之前完成）
+RUN /srv/vendor/bin/rr get-binary
+
+# 复制完整项目代码（vendor 目录应在 .dockerignore 中排除，避免覆盖上面安装的依赖）
 COPY . /srv
 COPY ./docker/conf/php/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY ./docker/conf/php/php.production.ini /usr/local/etc/php/php.ini
-
-# 下载 RoadRunner 二进制到 /srv/rr
-RUN /srv/vendor/bin/rr get-binary
 
 # 设置权限
 RUN chown -R www-data:www-data /srv && \
@@ -67,3 +67,5 @@ RUN chown -R www-data:www-data /srv && \
 RUN ls
 
 RUN ll
+
+CMD ["/srv/setup.sh"]
