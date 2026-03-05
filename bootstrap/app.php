@@ -3,6 +3,7 @@
 use App\Constants\StatusCode;
 use App\Http\Middleware\Authenticate;
 use App\Http\Middleware\SetClientIpFromFastly;
+use App\Http\Middleware\AuthenticateAppToken;
 use App\Support\ApiResponse;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -28,7 +29,8 @@ return Application::configure(basePath: dirname(__DIR__))->withRouting(
     channels: __DIR__ . '/../routes/channels.php',
 )->withMiddleware(function (Middleware $middleware) {
     $middleware->alias([
-        'auth' => Authenticate::class,
+        'auth'      => Authenticate::class,
+        'app.token' => AuthenticateAppToken::class,
     ]);
 
     // 不包含 HEADER_X_FORWARDED_FOR：真实客户端 IP 已由 SetClientIpFromFastly 写入
