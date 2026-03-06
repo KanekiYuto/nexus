@@ -3,9 +3,11 @@
 namespace App\AIModels;
 
 use App\AIModels\bytedance\seedream\v4_5\ImageEdit;
-use App\AIModels\Contracts\ModelHandlerContract;
 use App\AIModels\bytedance\seedream\v4_5\TextToImage;
+use App\AIModels\Contracts\ModelHandlerContract;
 use Extensions\API\Exceptions\ProviderSubmitException;
+use Extensions\API\Fal;
+use Extensions\API\WaveSpeed;
 use Illuminate\Validation\ValidationException;
 use RuntimeException;
 
@@ -19,10 +21,20 @@ class ModelDispatch
      *
      * @var array<string, class-string<ModelHandlerContract>>
      */
-    private const array MODEL_HANDLERS = [
+    public const array MODEL_HANDLERS = [
         TextToImage::MODEL_NAME => TextToImage::class,
         ImageEdit::MODEL_NAME => ImageEdit::class,
     ];
+
+    /**
+     * 获取所有模型标识。
+     *
+     * @return array<string> 所有模型标识
+     */
+    public static function getModels(): array
+    {
+        return collect(self::MODEL_HANDLERS)->keys()->toArray();
+    }
 
     /**
      * 校验模型专属参数，在创建任务记录前调用。

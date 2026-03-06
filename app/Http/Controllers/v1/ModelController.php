@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\v1;
 
+use App\AIModels\ModelDispatch;
 use App\Constants\ProviderConst;
 use App\Logic\v1\ModelLogic;
 use App\Support\ApiResponse;
@@ -35,7 +36,7 @@ class ModelController
                 ProviderConst::FAL,
             ])],
             'model' => ['required', Rule::in(
-                array_keys(Config::get('model', []))
+                ModelDispatch::getModels()
             )],
             'webhook_url' => ['required', 'url'],
             'custom_id' => ['required', 'string', 'max:128'],
