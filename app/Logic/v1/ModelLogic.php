@@ -35,6 +35,7 @@ class ModelLogic
      * @param array $params 经过控制器校验后的参数
      *
      * @return JsonResponse 统一 JSON 响应
+     *
      * @throws ValidationException
      */
     public static function generate(array $params): JsonResponse
@@ -105,10 +106,11 @@ class ModelLogic
      * - 将任务状态更新为 COMPLETED，并落库 provider_outputs/completed_at/duration_ms
      * - 调用业务侧 webhook_url 通知最终结果
      *
-     * @param string $taskId 内部任务ID
-     * @param array $outputs 服务商输出结果（通常为资源 URL 列表）
+     * @param string $taskId  内部任务ID
+     * @param array  $outputs 服务商输出结果（通常为资源 URL 列表）
      *
      * @return void
+     *
      * @throws Throwable
      */
     public static function webhook(string $taskId, array $outputs): void
@@ -130,7 +132,7 @@ class ModelLogic
 
         // 每个输出 URL 独立派发转存 Job，全部完成后推送 webhook
         $jobs = collect($outputs)
-            ->map(fn(string $url, int $index) => new TransferOutput($taskRecord->id, $url, $index))
+            ->map(fn (string $url, int $index) => new TransferOutput($taskRecord->id, $url, $index))
             ->values()
             ->all();
 
@@ -143,7 +145,7 @@ class ModelLogic
                 ->where('task_record_id', $taskRecordId)
                 ->orderBy('order_index')
                 ->get()
-                ->map(fn(TaskResult $r) => Storage::url($r->key))
+                ->map(fn (TaskResult $r) => Storage::url($r->key))
                 ->all();
 
             WebhookNotifier::resultUrlsUpdate($webhookUrl, $taskRecordId, $customId, $storedUrls);

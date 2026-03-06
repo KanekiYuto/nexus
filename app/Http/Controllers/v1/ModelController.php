@@ -7,8 +7,8 @@ use App\Constants\ProviderConst;
 use App\Logic\v1\ModelLogic;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -22,6 +22,7 @@ class ModelController
      * 创建生成任务。
      *
      * @param Request $request 请求参数
+     *
      * @return JsonResponse 统一 JSON 响应
      *
      * @throws ValidationException
@@ -60,9 +61,10 @@ class ModelController
      * - 按服务商协议校验请求体，并在“任务完成”条件满足时提取 outputs
      * - 统一调用逻辑层 webhook() 完成落库与业务侧通知
      *
-     * @param Request $request 服务商回调原始请求
-     * @param string $provider 服务商标识（路由参数）
-     * @param string $taskId 内部任务ID（路由参数）
+     * @param Request $request  服务商回调原始请求
+     * @param string  $provider 服务商标识（路由参数）
+     * @param string  $taskId   内部任务ID（路由参数）
+     *
      * @return JsonResponse 统一 JSON 响应
      */
     public function webhook(Request $request, string $provider, string $taskId): JsonResponse
@@ -93,7 +95,8 @@ class ModelController
 
             ModelLogic::webhook($taskId, collect(
                 $requestParams['payload']['images']
-            )->map(fn($item) => $item['url'])->toArray());;
+            )->map(fn ($item) => $item['url'])->toArray());
+            ;
         } else {
             // WaveSpeed 回调格式：code + status + outputs
             $requestParams = $request->validate([

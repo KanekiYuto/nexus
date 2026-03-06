@@ -10,9 +10,13 @@ namespace App\Constants;
  */
 class ProviderConst
 {
-    /** WaveSpeed 服务商 */
+    /**
+     * WaveSpeed 服务商
+     */
     public const string WAVE_SPEED = 'wavespeed';
 
-    /** Fal 服务商 */
+    /**
+     * Fal 服务商
+     */
     public const string FAL = 'fal';
 }

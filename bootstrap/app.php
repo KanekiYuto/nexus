@@ -2,8 +2,8 @@
 
 use App\Constants\StatusCode;
 use App\Http\Middleware\Authenticate;
-use App\Http\Middleware\SetClientIpFromFastly;
 use App\Http\Middleware\AuthenticateAppToken;
+use App\Http\Middleware\SetClientIpFromFastly;
 use App\Support\ApiResponse;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;

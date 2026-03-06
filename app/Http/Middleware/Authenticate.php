@@ -15,12 +15,12 @@ class Authenticate extends Middleware
     /**
      * Handle an incoming request.
      *
-     * @param  Request  $request
-     * @param  null     $guards
+     * @param Request $request
+     * @param null    $guards
      */
     public function handle($request, Closure $next, ...$guards): mixed
     {
-        if (array_any($guards, fn($guard) => !Auth::guard($guard)->check())) {
+        if (array_any($guards, fn ($guard) => !Auth::guard($guard)->check())) {
             return ApiResponse::basic(
                 'Unauthorized or session expired',
                 StatusCode::UNAUTHORIZED

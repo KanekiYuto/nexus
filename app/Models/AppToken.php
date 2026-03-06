@@ -7,23 +7,23 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
 
 /**
- * @property string $id
- * @property string $app_id
- * @property string $value
+ * @property string   $id
+ * @property string   $app_id
+ * @property string   $value
  * @property int|null $expired_at
- * @property int $created_at
- * @property int $updated_at
+ * @property int      $created_at
+ * @property int      $updated_at
  * @property-read App $app
  */
 class AppToken extends Model
 {
-    protected $table = 'app_token';
 
     public $incrementing = false;
 
-    protected $keyType = 'string';
-
     public $timestamps = false;
+    protected $table = 'app_token';
+
+    protected $keyType = 'string';
 
     protected $fillable = [
         'app_id',
@@ -36,6 +36,19 @@ class AppToken extends Model
         'created_at' => 'integer',
         'updated_at' => 'integer',
     ];
+
+    public function app(): BelongsTo
+    {
+        return $this->belongsTo(App::class, 'app_id');
+    }
+
+    public function isExpired(): bool
+    {
+        if (empty($this->expired_at)) {
+            return false;
+        }
+        return $this->expired_at < time();
+    }
 
     protected static function booted(): void
     {
@@ -51,18 +64,5 @@ class AppToken extends Model
         static::updating(function (AppToken $model) {
             $model->updated_at = time();
         });
-    }
-
-    public function app(): BelongsTo
-    {
-        return $this->belongsTo(App::class, 'app_id');
-    }
-
-    public function isExpired(): bool
-    {
-        if (empty($this->expired_at)) {
-            return false;
-        }
-        return $this->expired_at < time();
     }
 }

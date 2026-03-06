@@ -2,8 +2,8 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Sentinel\Drivers\Driver;
 use Laravel\Sentinel\Drivers\Laravel as SentinelLaravelDriver;

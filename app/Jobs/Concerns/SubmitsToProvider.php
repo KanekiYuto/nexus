@@ -84,7 +84,9 @@ trait SubmitsToProvider
      *
      * @param string $provider 服务商标识
      * @param string $taskId   任务 ID（传给服务商用于回调路由）
+     *
      * @return array 成功响应（provider_id / response）
+     *
      * @throws ProviderSubmitException
      */
     protected function submitToProvider(string $provider, string $taskId): array

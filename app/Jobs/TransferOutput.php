@@ -6,6 +6,7 @@ use App\Models\TaskResult;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Http\Client\Response;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Http;
@@ -73,7 +74,7 @@ class TransferOutput implements ShouldQueue
      * 优先从响应头 Content-Type 获取；
      * 缺失或为通用类型时，回退到用 finfo 从响应体内容检测。
      */
-    private function detectMimeType(\Illuminate\Http\Client\Response $response): string
+    private function detectMimeType(Response $response): string
     {
         $contentType = trim(explode(';', $response->header('Content-Type'))[0]);
 

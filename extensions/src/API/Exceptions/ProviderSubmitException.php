@@ -16,8 +16,8 @@ use Throwable;
 class ProviderSubmitException extends RuntimeException
 {
     /**
-     * @param string $message 可读错误描述
-     * @param array $payload 服务商原始响应（用于落库和调试）
+     * @param string         $message  可读错误描述
+     * @param array          $payload  服务商原始响应（用于落库和调试）
      * @param Throwable|null $previous 原始异常（如 ConnectionException）
      */
     public function __construct(

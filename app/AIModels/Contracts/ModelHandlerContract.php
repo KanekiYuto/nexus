@@ -17,6 +17,7 @@ interface ModelHandlerContract
      * 校验失败时抛出 ValidationException，由全局异常处理器统一返回 422。
      *
      * @param array $params 业务参数
+     *
      * @throws \Illuminate\Validation\ValidationException
      */
     public static function validateParams(array $params): void;
@@ -25,8 +26,9 @@ interface ModelHandlerContract
      * 向服务商提交生成任务。
      *
      * @param string $provider 服务商标识
-     * @param array $params 业务参数（已通过 validateParams）
-     * @param string $taskId 任务 ID
+     * @param array  $params   业务参数（已通过 validateParams）
+     * @param string $taskId   任务 ID
+     *
      * @return array 响应结构：success/code/msg/provider_id/response
      */
     public static function submit(string $provider, array $params, string $taskId): array;

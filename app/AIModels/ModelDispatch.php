@@ -42,8 +42,9 @@ class ModelDispatch
      * 模型不存在时抛出 ValidationException；
      * 参数非法时由 Handler 内部抛出 ValidationException。
      *
-     * @param string $model 模型标识
-     * @param array $params 业务参数
+     * @param string $model  模型标识
+     * @param array  $params 业务参数
+     *
      * @throws ValidationException
      */
     public static function validate(string $model, array $params): void
@@ -62,13 +63,15 @@ class ModelDispatch
     /**
      * 根据模型标识分发提交请求到对应处理器。
      *
-     * @param string $model 模型标识
+     * @param string $model    模型标识
      * @param string $provider 服务商标识
-     * @param array $params 业务参数（已通过 validate() 校验）
-     * @param string $taskId 任务 ID
+     * @param array  $params   业务参数（已通过 validate() 校验）
+     * @param string $taskId   任务 ID
+     *
      * @return array 成功响应（provider_id / response）
+     *
      * @throws ProviderSubmitException 服务商提交失败时抛出
-     * @throws RuntimeException 模型不存在时抛出
+     * @throws RuntimeException        模型不存在时抛出
      */
     public static function submit(string $model, string $provider, array $params, string $taskId): array
     {

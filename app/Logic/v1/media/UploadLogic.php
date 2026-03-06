@@ -14,13 +14,19 @@ use Illuminate\Validation\ValidationException;
 class UploadLogic
 {
 
-    /** 允许上传的图片后缀。 */
+    /**
+     * 允许上传的图片后缀。
+     */
     private const array IMAGE_EXTS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
 
-    /** 允许上传的视频后缀。 */
+    /**
+     * 允许上传的视频后缀。
+     */
     private const array VIDEO_EXTS = ['mp4', 'mov', 'avi', 'mkv', 'webm', 'flv'];
 
-    /** 各文件类型的大小上限（Byte）。 */
+    /**
+     * 各文件类型的大小上限（Byte）。
+     */
     private const array MAX_BYTES = [
         'image' => 10 * 1024 * 1024,
         'video' => 50 * 1024 * 1024,
@@ -33,8 +39,10 @@ class UploadLogic
      * 使存储层在实际上传时强制校验字节数，无法通过凭证绕过大小限制。
      *
      * @param string $filename 原始文件名，用于提取后缀
-     * @param int $size 文件字节数（Byte）
+     * @param int    $size     文件字节数（Byte）
+     *
      * @return JsonResponse 统一 JSON 响应，receipt 含 url / headers / path
+     *
      * @throws ValidationException 文件类型不支持或大小超出上限时抛出
      */
     public static function temporary(string $filename, int $size): JsonResponse
@@ -71,7 +79,9 @@ class UploadLogic
         $path = 'uploads/' . Str::ulid() . ($extension ? '.' . $extension : '');
 
         ['url' => $url, 'headers' => $headers] = Storage::temporaryUploadUrl(
-            $path, now()->addMinutes(5), ['ContentLength' => $size]
+            $path,
+            now()->addMinutes(5),
+            ['ContentLength' => $size]
         );
 
         return ApiResponse::receipt([
@@ -87,11 +97,14 @@ class UploadLogic
      * 仅在类型校验通过后调用，调用方保证后缀必定属于图片或视频。
      *
      * @param string $extension 文件后缀（小写，不含点）
+     *
      * @return int 最大字节数
      */
     private static function resolveMaxBytes(string $extension): int
     {
-        if (in_array($extension, self::IMAGE_EXTS, true)) return self::MAX_BYTES['image'];
+        if (in_array($extension, self::IMAGE_EXTS, true)) {
+            return self::MAX_BYTES['image'];
+        }
         return self::MAX_BYTES['video'];
     }
 

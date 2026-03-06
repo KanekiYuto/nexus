@@ -20,11 +20,12 @@ abstract class WaveSpeed
     /**
      * 向 WaveSpeed 提交图像生成任务。
      *
-     * @param string $model 上游模型路径，例如 "bytedance/seedream-v4.5"
+     * @param string               $model  上游模型路径，例如 "bytedance/seedream-v4.5"
      * @param array<string, mixed> $params 提交给上游服务的请求参数
-     * @param string $taskId 任务 ID
+     * @param string               $taskId 任务 ID
      *
      * @return array 成功响应（provider_id / response）
+     *
      * @throws ProviderSubmitException 连接失败或服务商返回错误时抛出
      */
     public static function submit(string $model, array $params, string $taskId): array

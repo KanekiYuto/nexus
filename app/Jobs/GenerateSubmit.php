@@ -33,12 +33,12 @@ class GenerateSubmit implements ShouldQueue
     use SubmitsToProvider;
 
     /**
-     * @param string      $taskRecordId    任务记录主键
-     * @param string      $customId        业务侧 ID
-     * @param string      $model           模型标识（如 bytedance/seedream/...）
-     * @param string      $provider        主服务商标识
-     * @param array       $parameters      提交给服务商的参数
-     * @param string      $webhookUrl      回调地址
+     * @param string      $taskRecordId     任务记录主键
+     * @param string      $customId         业务侧 ID
+     * @param string      $model            模型标识（如 bytedance/seedream/...）
+     * @param string      $provider         主服务商标识
+     * @param array       $parameters       提交给服务商的参数
+     * @param string      $webhookUrl       回调地址
      * @param string|null $fallbackProvider 回退服务商（可空）
      */
     public function __construct(

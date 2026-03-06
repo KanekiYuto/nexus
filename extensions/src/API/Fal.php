@@ -20,11 +20,12 @@ abstract class Fal
     /**
      * 向 FAL 提交图像生成任务。
      *
-     * @param string $model 上游模型路径，例如 "bytedance/seedream/v4.5/text-to-image"
+     * @param string               $model  上游模型路径，例如 "bytedance/seedream/v4.5/text-to-image"
      * @param array<string, mixed> $params 提交给上游服务的请求参数
-     * @param string $taskId 任务 ID
+     * @param string               $taskId 任务 ID
      *
      * @return array 成功响应（provider_id / response）
+     *
      * @throws ProviderSubmitException 连接失败或服务商返回错误时抛出
      */
     public static function submit(string $model, array $params, string $taskId): array

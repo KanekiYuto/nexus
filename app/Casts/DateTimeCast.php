@@ -2,9 +2,9 @@
 
 namespace App\Casts;
 
-use Illuminate\Support\Carbon;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 /**
  * 时间戳（Y-m-d H:i:s）
@@ -15,10 +15,10 @@ class DateTimeCast implements CastsAttributes
     /**
      * Cast the given value.
      *
-     * @param  Model                 $model
-     * @param  string                $key
-     * @param  mixed                 $value
-     * @param  array<string, mixed>  $attributes
+     * @param Model                $model
+     * @param string               $key
+     * @param mixed                $value
+     * @param array<string, mixed> $attributes
      *
      * @return string
      */
@@ -32,10 +32,10 @@ class DateTimeCast implements CastsAttributes
     /**
      * Prepare the given value for storage.
      *
-     * @param  Model                 $model
-     * @param  string                $key
-     * @param  mixed                 $value
-     * @param  array<string, mixed>  $attributes
+     * @param Model                $model
+     * @param string               $key
+     * @param mixed                $value
+     * @param array<string, mixed> $attributes
      *
      * @return int|null
      */
@@ -47,6 +47,5 @@ class DateTimeCast implements CastsAttributes
 
         return is_numeric($value) ? $value : Carbon::parse($value)->timestamp;
     }
-
 
 }

@@ -20,8 +20,9 @@ class WebhookNotifier
      * 发送“任务已入队”通知。
      *
      * @param string $webhookUrl 业务侧回调地址
-     * @param string $taskId 内部任务 ID
-     * @param string $customId 业务侧任务 ID
+     * @param string $taskId     内部任务 ID
+     * @param string $customId   业务侧任务 ID
+     *
      * @return void
      */
     public static function inQueue(string $webhookUrl, string $taskId, string $customId): void
@@ -40,11 +41,12 @@ class WebhookNotifier
     /**
      * 发送“任务失败”通知。
      *
-     * @param string $webhookUrl 业务侧回调地址
-     * @param string $taskId 内部任务 ID
-     * @param string $customId 业务侧任务 ID
-     * @param int $completedAt 完成时间（秒级时间戳）
-     * @param string $error 错误描述
+     * @param string $webhookUrl  业务侧回调地址
+     * @param string $taskId      内部任务 ID
+     * @param string $customId    业务侧任务 ID
+     * @param int    $completedAt 完成时间（秒级时间戳）
+     * @param string $error       错误描述
+     *
      * @return void
      */
     public static function failed(string $webhookUrl, string $taskId, string $customId, int $completedAt, string $error): void
@@ -68,7 +70,8 @@ class WebhookNotifier
      * @param string $webhookUrl
      * @param string $taskId
      * @param string $customId
-     * @param array $resultUrls
+     * @param array  $resultUrls
+     *
      * @return void
      */
     public static function resultUrlsUpdate(string $webhookUrl, string $taskId, string $customId, array $resultUrls): void
@@ -88,12 +91,13 @@ class WebhookNotifier
     /**
      * 发送“任务完成”通知。
      *
-     * @param string $webhookUrl 业务侧回调地址
-     * @param string $taskId 内部任务 ID
-     * @param string $customId 业务侧任务 ID
-     * @param int $completedAt 完成时间（秒级时间戳）
-     * @param int $durationMs 耗时（毫秒）
-     * @param array $result 任务输出结果
+     * @param string $webhookUrl  业务侧回调地址
+     * @param string $taskId      内部任务 ID
+     * @param string $customId    业务侧任务 ID
+     * @param int    $completedAt 完成时间（秒级时间戳）
+     * @param int    $durationMs  耗时（毫秒）
+     * @param array  $result      任务输出结果
+     *
      * @return void
      */
     public static function completed(
@@ -103,8 +107,7 @@ class WebhookNotifier
         int    $completedAt,
         int    $durationMs,
         array  $result,
-    ): void
-    {
+    ): void {
         if (empty($webhookUrl)) {
             return;
         }
@@ -125,8 +128,9 @@ class WebhookNotifier
      * 说明：
      * - 失败时仅写 warning 日志，调用方无需显式捕获
      *
-     * @param string $url 回调地址
-     * @param array $params 回调载荷
+     * @param string $url    回调地址
+     * @param array  $params 回调载荷
+     *
      * @return void
      */
     private static function http(string $url, array $params): void

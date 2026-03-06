@@ -14,7 +14,9 @@ class UploadController
      * 申请对象存储临时直传凭证。
      *
      * @param Request $request 请求参数
+     *
      * @return JsonResponse 统一 JSON 响应
+     *
      * @throws ValidationException
      */
     public function temporary(Request $request): JsonResponse

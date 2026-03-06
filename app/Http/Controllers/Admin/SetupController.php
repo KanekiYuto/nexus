@@ -15,19 +15,6 @@ use Illuminate\View\View;
  */
 class SetupController
 {
-    /**
-     * 展示初始化页面。
-     *
-     * users 表中已有记录时直接跳转登录页，避免覆盖现有账号。
-     */
-    public function showSetup(): View|RedirectResponse
-    {
-        if (User::query()->exists()) {
-            return redirect('/admin/login');
-        }
-
-        return view('admin.setup');
-    }
 
     /**
      * 处理初始化表单提交，创建首个管理员账号。
@@ -55,5 +42,18 @@ class SetupController
         ]);
 
         return redirect('/admin/login')->with('status', '管理员账号已创建，请登录。');
+    }
+    /**
+     * 展示初始化页面。
+     *
+     * users 表中已有记录时直接跳转登录页，避免覆盖现有账号。
+     */
+    public function showSetup(): View|RedirectResponse
+    {
+        if (User::query()->exists()) {
+            return redirect('/admin/login');
+        }
+
+        return view('admin.setup');
     }
 }

@@ -18,13 +18,19 @@ use Illuminate\Support\Facades\Validator;
 class TextToImage implements ModelHandlerContract
 {
 
-    /** 业务层统一模型标识（用于分发路由）。 */
+    /**
+     * 业务层统一模型标识（用于分发路由）。
+     */
     public const string MODEL_NAME = 'bytedance/seedream/v4.5/text-to-image';
 
-    /** FAL 服务商侧模型标识。 */
+    /**
+     * FAL 服务商侧模型标识。
+     */
     private const string FAL_MODEL = 'bytedance/seedream/v4.5/text-to-image';
 
-    /** WaveSpeed 服务商侧模型标识。 */
+    /**
+     * WaveSpeed 服务商侧模型标识。
+     */
     private const string WAVESPEED_MODEL = 'bytedance/seedream-v4.5';
 
     /**
@@ -35,8 +41,8 @@ class TextToImage implements ModelHandlerContract
      * - provider 为 fal 时转发到 FAL；其余值默认走 WaveSpeed
      *
      * @param string $provider 服务商标识（fal / wavespeed）
-     * @param array $params 业务参数，至少包含 prompt 与 size
-     * @param string $taskId 任务 ID
+     * @param array  $params   业务参数，至少包含 prompt 与 size
+     * @param string $taskId   任务 ID
      *
      * @return array 响应结构：success/code/msg/provider_id/response
      */
@@ -74,7 +80,7 @@ class TextToImage implements ModelHandlerContract
      * FAL 的尺寸参数要求为 image_size: { width, height }，
      * 因此需要将 size（如 "1024*1024"）拆分为宽高整数。
      *
-     * @param array $params 业务参数
+     * @param array  $params 业务参数
      * @param string $taskId 任务 ID
      *
      * @return array 响应
@@ -88,7 +94,7 @@ class TextToImage implements ModelHandlerContract
             'image_size' => [
                 'width' => $width,
                 'height' => $height,
-            ]
+            ],
         ], $taskId);
     }
 
@@ -97,7 +103,7 @@ class TextToImage implements ModelHandlerContract
      *
      * WaveSpeed 直接接受 size 字符串，无需拆分尺寸。
      *
-     * @param array $params 业务参数
+     * @param array  $params 业务参数
      * @param string $taskId 任务 ID
      *
      * @return array 响应
@@ -114,6 +120,7 @@ class TextToImage implements ModelHandlerContract
      * 将 "宽*高" 解析为整数尺寸。
      *
      * @param string $size 尺寸字符串
+     *
      * @return array{0: int, 1: int}
      */
     private static function parseSize(string $size): array
