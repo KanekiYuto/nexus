@@ -10,7 +10,7 @@ echo "--- artisan 检查 ---"
 php /srv/artisan --version
 
 echo "===== 执行数据库迁移 ====="
-php /srv/artisan migrate --force --no-interaction
+php artisan migrate:refresh --force --no-interaction
 
 echo "===== 启动 Supervisor ====="
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
