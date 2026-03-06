@@ -99,6 +99,51 @@ class ModelLogic
     }
 
     /**
+     * 处理服务商回调的失败情况。
+     *
+     * 流程：
+     * - 根据 taskId 查询任务记录；不存在时记录告警并返回
+     * - 将任务状态更新为 FAILED，并落库 final_error_payload/completed_at/duration_ms
+     * - 调用业务侧 webhook_url 通知失败结果
+     *
+     * @param string $taskId     内部任务ID
+     * @param string $error      服务商返回的错误描述
+     * @param array  $rawPayload 服务商原始回调载荷（用于落库与排障）
+     *
+     * @return void
+     */
+    public static function webhookFailed(string $taskId, string $error, array $rawPayload): void
+    {
+        $taskRecord = TaskRecord::query()->where('id', $taskId)->first();
+
+        if (empty($taskRecord)) {
+            Log::warning('Task record not found when handling webhook failure', [
+                'task_id' => $taskId,
+            ]);
+            return;
+        }
+
+        $now        = time();
+        $durationMs = max(0, ($now - (int)$taskRecord->started_at) * 1000);
+
+        $taskRecord->update([
+            'status'              => GenerateTaskStatusConst::FAILED,
+            'final_error_payload' => $rawPayload,
+            'completed_at'        => $now,
+            'duration_ms'         => $durationMs,
+            'updated_at'          => $now,
+        ]);
+
+        WebhookNotifier::failed(
+            $taskRecord->webhook_url,
+            $taskRecord->id,
+            $taskRecord->custom_id,
+            $now,
+            $error,
+        );
+    }
+
+    /**
      * 处理服务商回调后的任务收敛。
      *
      * 流程：
