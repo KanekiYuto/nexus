@@ -149,7 +149,8 @@ class ModelLogic
      * 流程：
      * - 根据 taskId 查询任务记录；不存在时记录告警并返回
      * - 将任务状态更新为 COMPLETED，并落库 provider_outputs/completed_at/duration_ms
-     * - 调用业务侧 webhook_url 通知最终结果
+     * - 立即推送 completed webhook（携带服务商原始输出 URL）
+     * - 派发转存 Job Batch，全部完成后推送 result_urls_update（携带自有存储 URL）
      *
      * @param string $taskId  内部任务ID
      * @param array  $outputs 服务商输出结果（通常为资源 URL 列表）
@@ -160,10 +161,7 @@ class ModelLogic
      */
     public static function webhook(string $taskId, array $outputs): void
     {
-        // 根据任务 ID 查询记录，优先走数据库状态收敛
         $taskRecord = TaskRecord::query()->where('id', $taskId)->first();
-        $completedAt = time();
-        $durationMs = max(0, ($completedAt - (int)$taskRecord->started_at) * 1000);
 
         if (empty($taskRecord)) {
             Log::warning('Task record not found when handling webhook', [
@@ -172,18 +170,31 @@ class ModelLogic
             return;
         }
 
+        $completedAt = time();
+        $durationMs  = max(0, ($completedAt - (int)$taskRecord->started_at) * 1000);
+
         // 回写任务最终状态与输出
         $taskRecord->markCompleted($outputs, $completedAt, $durationMs);
 
-        // 每个输出 URL 独立派发转存 Job，全部完成后推送 webhook
+        // 立即通知业务侧任务已完成（携带服务商原始输出 URL）
+        WebhookNotifier::completed(
+            $taskRecord->webhook_url,
+            $taskRecord->id,
+            $taskRecord->custom_id,
+            $completedAt,
+            $durationMs,
+            $outputs,
+        );
+
+        // 每个输出 URL 独立派发转存 Job，全部完成后推送自有存储 URL
         $jobs = collect($outputs)
             ->map(fn (string $url, int $index) => new TransferOutput($taskRecord->id, $url, $index))
             ->values()
             ->all();
 
         $taskRecordId = $taskRecord->id;
-        $customId = $taskRecord->custom_id;
-        $webhookUrl = $taskRecord->webhook_url;
+        $customId     = $taskRecord->custom_id;
+        $webhookUrl   = $taskRecord->webhook_url;
 
         Bus::batch($jobs)->then(function () use ($taskRecordId, $customId, $webhookUrl, $completedAt, $durationMs) {
             $storedUrls = TaskResult::query()
