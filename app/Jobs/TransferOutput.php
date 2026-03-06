@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\TaskResult;
+use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Queue\Queueable;
@@ -28,6 +29,7 @@ use Throwable;
  */
 class TransferOutput implements ShouldQueue
 {
+    use Batchable;
     use Dispatchable;
     use InteractsWithQueue;
     use Queueable;
