@@ -8,11 +8,12 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('task_result', function (Blueprint $table) {
-            $table->comment('任务结果表');
+            $table->comment('任务生成结果表');
             $table->ulid('id')->primary()->comment('ID');
-            $table->ulid('task_record_id')->index()->comment('任务ID');
-            $table->ulid('storage_id')->index()->comment('存储资源ID');
-            $table->unsignedInteger('order_index')->comment('排序序号');
+            $table->ulid('task_record_id')->index()->comment('所属任务ID');
+            $table->text('key')->comment('S3 存储路径（key）');
+            $table->text('original_url')->comment('服务商原始输出 URL');
+            $table->unsignedInteger('order_index')->comment('在输出列表中的位置（0-based）');
             $table->unsignedBigInteger('created_at')->comment('创建时间');
 
             $table->index(['task_record_id', 'order_index']);
@@ -21,12 +22,6 @@ return new class extends Migration {
             $table->foreign('task_record_id')
                 ->references('id')
                 ->on('task_record')
-                ->onDelete('cascade');
-
-            // 原始结果资源删除时，对应结果记录一并删除（该记录已无有效资源）
-            $table->foreign('storage_id')
-                ->references('id')
-                ->on('storage')
                 ->onDelete('cascade');
         });
     }

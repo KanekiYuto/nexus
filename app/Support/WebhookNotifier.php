@@ -63,6 +63,29 @@ class WebhookNotifier
     }
 
     /**
+     * 发送结果 URL 更新通知
+     *
+     * @param string $webhookUrl
+     * @param string $taskId
+     * @param string $customId
+     * @param array $resultUrls
+     * @return void
+     */
+    public static function resultUrlsUpdate(string $webhookUrl, string $taskId, string $customId, array $resultUrls): void
+    {
+        if (empty($webhookUrl)) {
+            return;
+        }
+
+        self::http($webhookUrl, [
+            'status' => GenerateTaskStatusConst::RESULT_URLS_UPDATE,
+            'task_id' => $taskId,
+            'custom_id' => $customId,
+            'result_urls' => $resultUrls,
+        ]);
+    }
+
+    /**
      * 发送“任务完成”通知。
      *
      * @param string $webhookUrl 业务侧回调地址

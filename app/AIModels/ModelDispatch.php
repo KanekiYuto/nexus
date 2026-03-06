@@ -2,6 +2,7 @@
 
 namespace App\AIModels;
 
+use App\AIModels\bytedance\seedream\v4_5\ImageEdit;
 use App\AIModels\Contracts\ModelHandlerContract;
 use App\AIModels\bytedance\seedream\v4_5\TextToImage;
 use Extensions\API\Exceptions\ProviderSubmitException;
@@ -20,6 +21,7 @@ class ModelDispatch
      */
     private const array MODEL_HANDLERS = [
         TextToImage::MODEL_NAME => TextToImage::class,
+        ImageEdit::MODEL_NAME => ImageEdit::class,
     ];
 
     /**

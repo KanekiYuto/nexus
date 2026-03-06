@@ -6,13 +6,18 @@ use App\AIModels\ModelDispatch;
 use App\Constants\GenerateTaskStatusConst;
 use App\Constants\StatusCode;
 use App\Jobs\GenerateSubmit;
-use App\Jobs\ProcessOutputs;
+use App\Jobs\TransferOutput;
 use App\Models\TaskRecord;
+use App\Models\TaskResult;
 use App\Support\ApiResponse;
+use App\Support\WebhookNotifier;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 /**
  * 模型生成业务逻辑。
@@ -104,6 +109,7 @@ class ModelLogic
      * @param array $outputs 服务商输出结果（通常为资源 URL 列表）
      *
      * @return void
+     * @throws Throwable
      */
     public static function webhook(string $taskId, array $outputs): void
     {
@@ -122,14 +128,25 @@ class ModelLogic
         // 回写任务最终状态与输出
         $taskRecord->markCompleted($outputs, $completedAt, $durationMs);
 
-        // 转存资源并推送 webhook（异步执行，不阻塞服务商回调响应）
-        ProcessOutputs::dispatch(
-            $taskRecord->id,
-            $taskRecord->custom_id,
-            $taskRecord->webhook_url,
-            $completedAt,
-            $durationMs,
-            $outputs,
-        );
+        // 每个输出 URL 独立派发转存 Job，全部完成后推送 webhook
+        $jobs = collect($outputs)
+            ->map(fn(string $url, int $index) => new TransferOutput($taskRecord->id, $url, $index))
+            ->values()
+            ->all();
+
+        $taskRecordId = $taskRecord->id;
+        $customId = $taskRecord->custom_id;
+        $webhookUrl = $taskRecord->webhook_url;
+
+        Bus::batch($jobs)->then(function () use ($taskRecordId, $customId, $webhookUrl, $completedAt, $durationMs) {
+            $storedUrls = TaskResult::query()
+                ->where('task_record_id', $taskRecordId)
+                ->orderBy('order_index')
+                ->get()
+                ->map(fn(TaskResult $r) => Storage::url($r->key))
+                ->all();
+
+            WebhookNotifier::resultUrlsUpdate($webhookUrl, $taskRecordId, $customId, $storedUrls);
+        })->dispatch();
     }
 }

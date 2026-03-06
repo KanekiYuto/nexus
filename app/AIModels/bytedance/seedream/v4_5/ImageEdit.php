@@ -9,26 +9,26 @@ use Extensions\API\WaveSpeed;
 use Illuminate\Support\Facades\Validator;
 
 /**
- * 字节 Seedream v4.5 文生图能力封装。
+ * 字节 Seedream v4.5 图生图能力封装。
  *
  * 职责边界：
  * - 仅做模型层参数校验与服务商请求映射
  * - 不处理任务状态流转与回调发送（由 Job/Logic 层处理）
  */
-class TextToImage implements ModelHandlerContract
+class ImageEdit implements ModelHandlerContract
 {
 
     /** 业务层统一模型标识（用于分发路由）。 */
-    public const string MODEL_NAME = 'bytedance/seedream/v4.5/text-to-image';
+    public const string MODEL_NAME = 'bytedance/seedream/v4.5/edit';
 
     /** FAL 服务商侧模型标识。 */
-    private const string FAL_MODEL = 'bytedance/seedream/v4.5/text-to-image';
+    private const string FAL_MODEL = 'bytedance/seedream/v4.5/edit';
 
     /** WaveSpeed 服务商侧模型标识。 */
-    private const string WAVESPEED_MODEL = 'bytedance/seedream-v4.5';
+    private const string WAVESPEED_MODEL = 'bytedance/seedream-v4.5/edit';
 
     /**
-     * 提交文生图任务，并按服务商转发请求。
+     * 提交图生图任务，并按服务商转发请求。
      *
      * 约定：
      * - 入参须由上游在创建任务前通过 validateParams() 校验，此处不再重复验证
@@ -45,6 +45,7 @@ class TextToImage implements ModelHandlerContract
         $normalizedParams = [
             'prompt' => (string)$params['prompt'],
             'size' => (string)$params['size'],
+            'images' => $params['images'],
         ];
 
         return match ($provider) {
@@ -65,6 +66,7 @@ class TextToImage implements ModelHandlerContract
         Validator::validate($params, [
             'prompt' => ['required', 'string'],
             'size' => ['required', 'string', 'regex:/^\d+\*\d+$/'],
+            'images' => ['required', 'array', 'min:1', 'max:10'],
         ]);
     }
 
@@ -88,7 +90,8 @@ class TextToImage implements ModelHandlerContract
             'image_size' => [
                 'width' => $width,
                 'height' => $height,
-            ]
+            ],
+            'image_urls' => $params['images'],
         ], $taskId);
     }
 
@@ -107,6 +110,7 @@ class TextToImage implements ModelHandlerContract
         return WaveSpeed::submit(self::WAVESPEED_MODEL, [
             'prompt' => $params['prompt'],
             'size' => $params['size'],
+            'images' => $params['images'],
         ], $taskId);
     }
 

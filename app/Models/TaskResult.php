@@ -4,17 +4,18 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
  * 任务生成结果记录。
  *
- * 每条记录对应服务商输出的一个资源文件，
- * 转存完成后与 storage 表关联。
+ * 每条记录对应服务商输出的一个资源文件，转存至 S3 后写入。
  *
  * @property string $id
  * @property string $task_record_id 所属任务 ID
- * @property string $storage_id     关联存储资源 ID
+ * @property string $key            S3 存储路径
+ * @property string $original_url   服务商原始输出 URL
  * @property int    $order_index    在输出列表中的位置（0-based）
  * @property int    $created_at
  */
@@ -56,7 +57,8 @@ class TaskResult extends Model
     protected $fillable = [
         'id',
         'task_record_id',
-        'storage_id',
+        'key',
+        'original_url',
         'order_index',
         'created_at',
     ];
@@ -88,18 +90,18 @@ class TaskResult extends Model
     }
 
     /**
+     * 通过 S3 key 生成可访问 URL。
+     */
+    public function getUrlAttribute(): string
+    {
+        return Storage::url($this->key);
+    }
+
+    /**
      * 所属任务记录。
      */
     public function taskRecord(): BelongsTo
     {
         return $this->belongsTo(TaskRecord::class, 'task_record_id', 'id');
-    }
-
-    /**
-     * 关联的存储资源。
-     */
-    public function storage(): BelongsTo
-    {
-        return $this->belongsTo(Storage::class, 'storage_id', 'id');
     }
 }
