@@ -76,10 +76,9 @@ class ModelController
             return ApiResponse::success('None');
         }
 
-        if ($provider === ProviderConst::FAL) {
-            // FAL 回调格式：status + payload.images[*].url
-            $requestParams = $request->all(['status', 'payload']);
+        $requestParams = $request->all();
 
+        if ($provider === ProviderConst::FAL) {
             if ($requestParams['status'] !== 'OK') {
                 $error = $requestParams['payload']['detail']
                     ?? $requestParams['payload']['error']
@@ -101,12 +100,6 @@ class ModelController
             )->map(fn ($item) => $item['url'])->toArray());
         } else {
             // WaveSpeed 回调格式：code + status + outputs + error
-            $requestParams = $request->validate([
-                'code'    => ['required', 'numeric'],
-                'status'  => ['required', 'string'],
-                'outputs' => ['required', 'array'],
-                'error'   => ['nullable', 'string'],
-            ]);
 
             if ($requestParams['code'] !== 0 || $requestParams['status'] !== 'completed') {
                 ModelLogic::webhookFailed(
