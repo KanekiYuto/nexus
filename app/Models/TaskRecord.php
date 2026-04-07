@@ -3,11 +3,16 @@
 namespace App\Models;
 
 use App\Constants\GenerateTaskStatusConst;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Throwable;
 
 /**
+ * 任务主记录模型。
+ *
+ * 持久化任务请求、服务商状态流转与最终结果摘要。
+ *
  * @property string      $id
  * @property string      $app_id
  * @property string      $custom_id
@@ -30,6 +35,7 @@ use Throwable;
  * @property int|null    $completed_at
  * @property int         $created_at
  * @property int         $updated_at
+ * @property-read Collection<int, TaskResult> $results
  */
 class TaskRecord extends Model
 {

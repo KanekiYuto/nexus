@@ -6,8 +6,6 @@ use App\AIModels\bytedance\seedream\v4_5\ImageEdit;
 use App\AIModels\bytedance\seedream\v4_5\TextToImage;
 use App\AIModels\Contracts\ModelHandlerContract;
 use Extensions\API\Exceptions\ProviderSubmitException;
-use Extensions\API\Fal;
-use Extensions\API\WaveSpeed;
 use Illuminate\Validation\ValidationException;
 use RuntimeException;
 

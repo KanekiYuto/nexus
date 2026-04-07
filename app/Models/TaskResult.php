@@ -18,6 +18,8 @@ use Illuminate\Support\Str;
  * @property string $original_url   服务商原始输出 URL
  * @property int    $order_index    在输出列表中的位置（0-based）
  * @property int    $created_at
+ * @property-read string $url
+ * @property-read TaskRecord $taskRecord
  */
 class TaskResult extends Model
 {

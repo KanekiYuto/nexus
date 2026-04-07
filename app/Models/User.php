@@ -8,13 +8,23 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
+/**
+ * 系统用户模型。
+ *
+ * @property int                             $id
+ * @property string                          $name
+ * @property string                          $email
+ * @property string                          $password
+ * @property \Illuminate\Support\Carbon|null $email_verified_at
+ * @property string|null                     $remember_token
+ */
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
     /**
-     * The attributes that are mass assignable.
+     * 可批量赋值字段。
      *
      * @var list<string>
      */
@@ -25,7 +35,7 @@ class User extends Authenticatable
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
+     * 序列化时隐藏字段。
      *
      * @var list<string>
      */
@@ -35,7 +45,7 @@ class User extends Authenticatable
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * 字段类型转换。
      *
      * @return array<string, string>
      */

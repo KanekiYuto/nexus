@@ -3,6 +3,7 @@
 namespace App\AIModels\bytedance\seedream\v4_5;
 
 use App\AIModels\Contracts\ModelHandlerContract;
+use App\AIModels\Contracts\ParsesModelSize;
 use App\Constants\ProviderConst;
 use Extensions\API\Fal;
 use Extensions\API\WaveSpeed;
@@ -17,6 +18,7 @@ use Illuminate\Support\Facades\Validator;
  */
 class TextToImage implements ModelHandlerContract
 {
+    use ParsesModelSize;
 
     /**
      * 业务层统一模型标识（用于分发路由）。
@@ -114,19 +116,6 @@ class TextToImage implements ModelHandlerContract
             'prompt' => $params['prompt'],
             'size' => $params['size'],
         ], $taskId);
-    }
-
-    /**
-     * 将 "宽*高" 解析为整数尺寸。
-     *
-     * @param string $size 尺寸字符串
-     *
-     * @return array{0: int, 1: int}
-     */
-    private static function parseSize(string $size): array
-    {
-        [$width, $height] = explode('*', $size, 2);
-        return [(int)$width, (int)$height];
     }
 
 }

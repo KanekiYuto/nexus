@@ -2,6 +2,8 @@
 
 namespace App\AIModels\Contracts;
 
+use Illuminate\Validation\ValidationException;
+
 /**
  * 模型 Handler 契约。
  *
@@ -18,7 +20,7 @@ interface ModelHandlerContract
      *
      * @param array $params 业务参数
      *
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws ValidationException
      */
     public static function validateParams(array $params): void;
 
